@@ -50,6 +50,7 @@ app.use(
   "/api/registered-subjects",
   require("./routes/registeredSubjectRoutes")
 );
+app.use("/api/tuition", require("./routes/tuitionRoutes"));
 const invoices = require("./data/mockInvoices");
 app.get("/api/invoices", (req, res) => {
   res.json(invoices);
