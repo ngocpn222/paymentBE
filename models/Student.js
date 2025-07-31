@@ -5,7 +5,7 @@ const studentSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
     classId: { type: mongoose.Schema.Types.ObjectId, ref: "Class" },
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", unique: true }, // liên kết
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     dob: Date,
     gender: String,
     phone: String,
