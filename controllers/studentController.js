@@ -13,10 +13,10 @@ exports.createStudent = async (req, res) => {
 
 exports.getAllStudents = async (req, res) => {
   try {
-    const students = await Student.find().populate("userId", "email role");
+    const students = await Student.find().populate("classId", "name"); 
     res.json(students);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
@@ -49,5 +49,25 @@ exports.deleteStudent = async (req, res) => {
     res.json({ message: "Student deleted successfully" });
   } catch (err) {
     res.status(500).json({ message: err.message });
+  }
+};
+
+exports.addStudent = async (req, res) => {
+  const { name, classId, gender, phone, dob } = req.body;
+
+  // Kiểm tra dữ liệu đầu vào
+  if (!name || !classId || !gender || !dob) {
+    return res.status(400).json({ message: "Vui lòng cung cấp đầy đủ thông tin" });
+  }
+
+  try {
+    const newStudent = await Student.create({ name, classId, gender, phone, dob });
+    res.status(201).json(newStudent);
+  } catch (error) {
+    if (error.code === 11000) {
+      res.status(400).json({ message: "Dữ liệu bị trùng lặp" });
+    } else {
+      res.status(500).json({ message: "Đã xảy ra lỗi", error: error.message });
+    }
   }
 };

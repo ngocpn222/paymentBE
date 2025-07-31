@@ -28,5 +28,6 @@ router.delete(
   authorize("admin"),
   classCtrl.deleteClass
 ); // chỉ admin được xoá
+router.get("/:id", classCtrl.getClassDetails);
 
 module.exports = router;
