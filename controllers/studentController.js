@@ -1,5 +1,6 @@
 // controllers/studentController.js
 const Student = require("../models/Student");
+const jwt = require("jsonwebtoken");
 
 exports.createStudent = async (req, res) => {
   try {
@@ -69,5 +70,19 @@ exports.addStudent = async (req, res) => {
     } else {
       res.status(500).json({ message: "Đã xảy ra lỗi", error: error.message });
     }
+  }
+};
+
+const authenticateToken = (req, res, next) => {
+  const token = req.headers['authorization'];
+  if (!token) {
+    return res.status(400).json({ message: "Access token is missing" });
+  }
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (error) {
+    res.status(403).json({ message: "Invalid token" });
   }
 };
