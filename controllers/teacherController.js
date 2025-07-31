@@ -18,6 +18,7 @@ exports.getAllTeachers = async (req, res) => {
       .populate("classIds", "name");
     res.json(teachers);
   } catch (err) {
+    console.error("Error fetching teachers:", err);
     res.status(500).json({ message: err.message });
   }
 };
