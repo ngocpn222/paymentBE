@@ -8,7 +8,8 @@ const classSchema = new mongoose.Schema(
       unique: true,
     },
     description: String,
-    students: [{ type: mongoose.Schema.Types.ObjectId, ref: "Student" }], // optional
+    students: [{ type: mongoose.Schema.Types.ObjectId, ref: "Student" }],
+    teacher: { type: mongoose.Schema.Types.ObjectId, ref: "Teacher" },
   },
   { timestamps: true }
 );

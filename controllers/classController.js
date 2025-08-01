@@ -1,4 +1,5 @@
 const Class = require("../models/class");
+const Student = require("../models/Student");
 
 exports.createClass = async (req, res) => {
   try {
@@ -16,9 +17,15 @@ exports.createClass = async (req, res) => {
 exports.getAllClasses = async (req, res) => {
   try {
     const classes = await Class.find();
-    res.json(classes);
-  } catch (err) {
-    res.status(500).json({ message: "Error fetching classes" });
+    const classesWithStudentCount = await Promise.all(
+      classes.map(async (cls) => {
+        const studentCount = await Student.countDocuments({ classId: cls._id });
+        return { ...cls.toObject(), studentCount };
+      })
+    );
+    res.json(classesWithStudentCount);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
@@ -41,5 +48,21 @@ exports.deleteClass = async (req, res) => {
     res.json({ message: "Class deleted" });
   } catch (err) {
     res.status(500).json({ message: "Error deleting class" });
+  }
+};
+
+exports.getClassDetails = async (req, res) => {
+  try {
+    const classId = req.params.id;
+    const classData = await Class.findById(classId);
+    if (!classData) {
+      return res.status(404).json({ message: "Lớp học không tồn tại" });
+    }
+
+    // Lấy danh sách học sinh liên kết với lớp
+    const students = await Student.find({ classId });
+    res.json({ ...classData.toObject(), students });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };

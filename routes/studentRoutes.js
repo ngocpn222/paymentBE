@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const studentController = require("../controllers/studentController");
+const { addStudent } = require("../controllers/studentController");
 const authenticateToken = require("../middlewares/authMiddleware");
 const authorize = require("../middlewares/authorize");
 
@@ -30,5 +31,9 @@ router.delete(
   authorize("admin"),
   studentController.deleteStudent
 );
+
+// Thêm middleware authenticateToken vào route thêm học sinh
+router.post("/students", authenticateToken, addStudent);
+studentController.addStudent
 
 module.exports = router;

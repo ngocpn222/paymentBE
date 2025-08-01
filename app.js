@@ -21,6 +21,7 @@ app.use("/api/students", studentRoutes);
 app.use("/api/teachers", teacherRoutes);
 app.use("/api/subjects", subjectRoutes);
 app.use("/api/registered-subjects", registeredSubjectRoutes);
+app.use("/api/tuition", require("./routes/tuitionRoutes"));
 app.get("/", (req, res) => {
   res.send("Tuition Payment API Running...");
 });
