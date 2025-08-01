@@ -40,7 +40,7 @@ exports.getAllTuitions = async (req, res) => {
   try {
     const tuitions = await Tuition.find()
       .populate("student", "name email")
-      .populate("registeredSubjects");
+      .populate("registeredSubjects", "name code credit");
     res.json(tuitions);
   } catch (err) {
     res.status(500).json({ message: "Server error" });
@@ -62,10 +62,10 @@ exports.payTuition = async (req, res) => {
 
 exports.getMyTuition = async (req, res) => {
   try {
-    const studentId = req.user.id; // hoặc req.user._id tùy JWT
-    const tuition = await Tuition.findOne({ student: studentId }).populate(
-      "registeredSubjects"
-    );
+    const studentId = req.user.id; // Lấy ID sinh viên từ JWT
+    const tuition = await Tuition.findOne({ student: studentId })
+      .populate("registeredSubjects", "name code credit")
+      .populate("student", "name email");
     if (!tuition) return res.status(404).json({ message: "No tuition found" });
     res.json(tuition);
   } catch (err) {

@@ -34,5 +34,6 @@ router.delete(
 
 // Thêm middleware authenticateToken vào route thêm học sinh
 router.post("/students", authenticateToken, addStudent);
+studentController.addStudent
 
 module.exports = router;

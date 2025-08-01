@@ -1,6 +1,8 @@
 // controllers/studentController.js
-const Student = require("../models/Student");
+const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const Student = require("../models/Student");
+const User = require("../models/User"); // Model User để lưu tài khoản
 
 exports.createStudent = async (req, res) => {
   try {
@@ -14,7 +16,7 @@ exports.createStudent = async (req, res) => {
 
 exports.getAllStudents = async (req, res) => {
   try {
-    const students = await Student.find().populate("classId", "name"); 
+    const students = await Student.find().populate("classId", "name");
     res.json(students);
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
@@ -56,20 +58,34 @@ exports.deleteStudent = async (req, res) => {
 exports.addStudent = async (req, res) => {
   const { name, classId, gender, phone, dob } = req.body;
 
-  // Kiểm tra dữ liệu đầu vào
   if (!name || !classId || !gender || !dob) {
     return res.status(400).json({ message: "Vui lòng cung cấp đầy đủ thông tin" });
   }
 
   try {
+    // Tạo sinh viên mới
     const newStudent = await Student.create({ name, classId, gender, phone, dob });
-    res.status(201).json(newStudent);
+
+    // Tạo tài khoản Gmail và mật khẩu cho sinh viên
+    const email = `${name.toLowerCase().replace(/\s+/g, "")}${newStudent._id}@example.com`; // Tạo email dựa trên tên và ID
+    const password = Math.random().toString(36).slice(-8); // Tạo mật khẩu ngẫu nhiên
+    const hashedPassword = await bcrypt.hash(password, 10); // Mã hóa mật khẩu
+
+    await User.create({
+      username: email,
+      email,
+      password: hashedPassword,
+      role: "student", // Vai trò là sinh viên
+    });
+
+    res.status(201).json({
+      message: "Học sinh và tài khoản đã được tạo thành công!",
+      student: newStudent,
+      account: { email, password }, // Trả về tài khoản và mật khẩu
+    });
   } catch (error) {
-    if (error.code === 11000) {
-      res.status(400).json({ message: "Dữ liệu bị trùng lặp" });
-    } else {
-      res.status(500).json({ message: "Đã xảy ra lỗi", error: error.message });
-    }
+    console.error("Error adding student:", error);
+    res.status(500).json({ message: "Đã xảy ra lỗi", error: error.message });
   }
 };
 
