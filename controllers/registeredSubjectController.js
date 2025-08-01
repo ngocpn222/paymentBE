@@ -66,8 +66,8 @@ exports.getAll = async (req, res) => {
 exports.getById = async (req, res) => {
   try {
     const item = await RegisteredSubject.findById(req.params.id)
-      .populate("student")
-      .populate("subject");
+      .populate("student", "name email")
+      .populate("subject", "name code credit");
     if (!item) return res.status(404).json({ message: "Not found" });
     res.json(item);
   } catch (err) {

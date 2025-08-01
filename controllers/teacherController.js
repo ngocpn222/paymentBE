@@ -27,7 +27,7 @@ exports.getTeacherById = async (req, res) => {
   try {
     const teacher = await Teacher.findById(req.params.id)
       .populate("userId")
-      .populate("classIds");
+      .populate("classIds", "name");
     if (!teacher) return res.status(404).json({ message: "Teacher not found" });
     res.json(teacher);
   } catch (err) {
