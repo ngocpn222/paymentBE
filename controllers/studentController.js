@@ -1,14 +1,27 @@
+// Lấy studentId theo userId
+exports.getStudentIdByUserId = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const student = await Student.findOne({ userId });
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+    res.json({ studentId: student._id });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
 // controllers/studentController.js
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const Student = require("../models/Student");
-D;
+
 const User = require("../models/User");
 
 exports.createStudent = async (req, res) => {
   try {
     // Lấy thông tin từ request
-    let { mssv, name, dob, gender, phone, classId } = req.body;
+    let { mssv, name, dob, gender, phone, classId, email } = req.body;
 
     // Nếu không truyền mssv thì tự sinh
     if (!mssv) {
@@ -32,11 +45,20 @@ exports.createStudent = async (req, res) => {
       }
     }
 
-    // Tạo user: username, email, password đều là mssv, role là student
+    // Kiểm tra trùng email
+    if (!email) {
+      return res.status(400).json({ message: "Thiếu email" });
+    }
+    const existedEmail = await User.findOne({ email });
+    if (existedEmail) {
+      return res.status(400).json({ message: "Email đã tồn tại" });
+    }
+
+    // Tạo user: username là mssv, email lấy từ frontend, password là mssv, role là student
     const user = await User.create({
       username: mssv,
-      email: mssv,
-      password: mssv,
+      email: email,
+      password: "Hutech@123",
       role: "student",
     });
 
@@ -48,6 +70,7 @@ exports.createStudent = async (req, res) => {
       phone,
       classId,
       userId: user._id,
+      email: email,
     });
     await student.save();
 
@@ -99,15 +122,21 @@ exports.deleteStudent = async (req, res) => {
 };
 
 exports.addStudent = async (req, res) => {
-  const { name, classId, gender, phone, dob } = req.body;
+  const { name, classId, gender, phone, dob, email, password } = req.body;
 
-  if (!name || !classId || !gender || !dob) {
+  if (!name || !classId || !gender || !dob || !email || !password) {
     return res
       .status(400)
       .json({ message: "Vui lòng cung cấp đầy đủ thông tin" });
   }
 
   try {
+    // Kiểm tra trùng email
+    const existedEmail = await User.findOne({ email });
+    if (existedEmail) {
+      return res.status(400).json({ message: "Email đã tồn tại" });
+    }
+
     // Tạo sinh viên mới
     const newStudent = await Student.create({
       name,
@@ -115,14 +144,11 @@ exports.addStudent = async (req, res) => {
       gender,
       phone,
       dob,
+      email,
     });
 
-    // Tạo tài khoản Gmail và mật khẩu cho sinh viên
-    const email = `${name.toLowerCase().replace(/\s+/g, "")}${
-      newStudent._id
-    }@example.com`; // Tạo email dựa trên tên và ID
-    const password = Math.random().toString(36).slice(-8); // Tạo mật khẩu ngẫu nhiên
-    const hashedPassword = await bcrypt.hash(password, 10); // Mã hóa mật khẩu
+    // Mã hóa mật khẩu
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     await User.create({
       username: email,
@@ -134,7 +160,7 @@ exports.addStudent = async (req, res) => {
     res.status(201).json({
       message: "Học sinh và tài khoản đã được tạo thành công!",
       student: newStudent,
-      account: { email, password }, // Trả về tài khoản và mật khẩu
+      account: { email }, // Trả về tài khoản
     });
   } catch (error) {
     console.error("Error adding student:", error);

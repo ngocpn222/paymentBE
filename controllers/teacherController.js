@@ -1,11 +1,40 @@
 // controllers/teacherController.js
 const Teacher = require("../models/Teacher");
 
+const User = require("../models/User");
+
 exports.createTeacher = async (req, res) => {
   try {
-    const teacher = new Teacher(req.body);
+    const { name, email, phone, gender, dob, classIds, password } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: "Thiếu email" });
+    }
+    const existedEmail = await User.findOne({ email });
+    if (existedEmail) {
+      return res.status(400).json({ message: "Email đã tồn tại" });
+    }
+
+    // Tạo user cho giáo viên
+    const user = await User.create({
+      username: email,
+      email,
+      password: password || "Hutech@123", // Nếu không truyền thì dùng mặc định
+      role: "staff",
+    });
+
+    // Tạo giáo viên, liên kết userId
+    const teacher = new Teacher({
+      name,
+      email,
+      phone,
+      gender,
+      dob,
+      classIds,
+      userId: user._id,
+    });
     await teacher.save();
-    res.status(201).json(teacher);
+
+    res.status(201).json({ teacher, user });
   } catch (err) {
     res.status(400).json({ message: err.message });
   }

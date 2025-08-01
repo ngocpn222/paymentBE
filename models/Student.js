@@ -9,6 +9,7 @@ const studentSchema = new mongoose.Schema(
     dob: Date,
     gender: String,
     phone: String,
+    email: { type: String, required: true, unique: true },
   },
   { timestamps: true }
 );

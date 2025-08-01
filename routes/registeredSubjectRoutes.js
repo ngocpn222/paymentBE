@@ -4,14 +4,6 @@ const registeredSubjectController = require("../controllers/registeredSubjectCon
 const authenticateToken = require("../middlewares/authMiddleware");
 const authorize = require("../middlewares/authorize");
 
-// POST: Sinh viên đăng ký một môn học
-router.post(
-  "/",
-  authenticateToken,
-  authorize("student"),
-  registeredSubjectController.create
-);
-
 // POST: Sinh viên đăng ký nhiều môn học
 router.post(
   "/many",
@@ -20,29 +12,21 @@ router.post(
   registeredSubjectController.createMany
 );
 
-// GET: Admin/staff xem tất cả đăng ký môn học
-router.get(
+// POST: Sinh viên đăng ký một môn học
+router.post(
   "/",
   authenticateToken,
-  authorize("admin", "staff"),
-  registeredSubjectController.getAll
+  authorize("student"),
+  registeredSubjectController.create
 );
 
-// GET: Xem chi tiết đăng ký môn học theo ID
-// - Student: chỉ được xem của chính họ
-// - Admin/Staff: xem tất cả
-router.get(
-  "/:id",
-  authenticateToken,
-  authorize("admin", "staff", "student"),
-  registeredSubjectController.getById
-);
+// ...existing code...
 
 // PUT: Chỉ admin/staff được chỉnh sửa đăng ký môn học
 router.put(
   "/:id",
   authenticateToken,
-  authorize("admin", "staff"),
+  authorize("admin", "staff", "student"),
   registeredSubjectController.update
 );
 
@@ -52,7 +36,7 @@ router.put(
 router.delete(
   "/:id",
   authenticateToken,
-  authorize("admin", "student"),
+  authorize("admin", "student", "staff"),
   registeredSubjectController.delete
 );
 
