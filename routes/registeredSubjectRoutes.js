@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const RegisteredSubject = require("../models/RegisteredSubject");
 const registeredSubjectController = require("../controllers/registeredSubjectController");
 const authenticateToken = require("../middlewares/authMiddleware");
 const authorize = require("../middlewares/authorize");
@@ -20,8 +21,6 @@ router.post(
   registeredSubjectController.create
 );
 
-// ...existing code...
-
 // PUT: Chỉ admin/staff được chỉnh sửa đăng ký môn học
 router.put(
   "/:id",
@@ -39,5 +38,17 @@ router.delete(
   authorize("admin", "student", "staff"),
   registeredSubjectController.delete
 );
+
+// Lấy tất cả môn đã đăng ký
+router.get("/", async (req, res) => {
+  try {
+    const subjects = await RegisteredSubject.find()
+      .populate("student", "name")
+      .populate("subject", "name code");
+    res.json(subjects);
+  } catch (err) {
+    res.status(500).json({ message: "Lỗi server khi lấy danh sách môn đã đăng ký" });
+  }
+});
 
 module.exports = router;

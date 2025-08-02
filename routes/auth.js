@@ -1,5 +1,6 @@
 // routes/auth.js
 const User = require("../models/User");
+const Student = require("../models/Student"); // import model Student
 const jwt = require("jsonwebtoken");
 
 const express = require("express");
@@ -20,9 +21,11 @@ router.post("/login", async (req, res) => {
     if (!isMatch)
       return res.status(401).json({ message: "Invalid email or password" });
 
+    const student = await Student.findOne({ userId: user._id });
+    const studentId = student ? student._id.toString() : null;
     const token = jwt.sign(
-      { id: user._id, email: user.email, role: user.role },
-      process.env.JWT_SECRET, // ✅ SỬ DỤNG BIẾN TỪ .env
+      { id: user._id, email: user.email, role: user.role, studentId },
+      process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
 
@@ -33,6 +36,7 @@ router.post("/login", async (req, res) => {
         username: user.username,
         email: user.email,
         role: user.role,
+        studentId, // trả về cho FE nếu cần
       },
     });
   } catch (err) {

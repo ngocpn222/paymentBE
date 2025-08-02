@@ -1,5 +1,6 @@
 const Tuition = require("../models/Tuition");
 const RegisteredSubject = require("../models/RegisteredSubject");
+const Subject = require("../models/Subject");
 
 exports.createTuition = async (req, res) => {
   try {
@@ -39,11 +40,34 @@ exports.createTuition = async (req, res) => {
 exports.getAllTuitions = async (req, res) => {
   try {
     const tuitions = await Tuition.find()
-      .populate("student", "name email")
-      .populate("registeredSubjects", "name code credit");
-    res.json(tuitions);
+      .populate({
+        path: "student",
+        select: "name email mssv studentId code classId",
+        populate: {
+          path: "classId",
+          select: "name",
+        },
+      })
+      .populate({
+        path: "registeredSubjects",
+        populate: {
+          path: "subject",
+          select: "code name credit",
+        },
+      });
+    // Map lại dữ liệu cho FE dễ dùng
+    const result = tuitions.map((tuition) => ({
+      ...tuition.toObject(),
+      registeredSubjects: tuition.registeredSubjects.map((rs) => ({
+        code: rs.subject?.code,
+        name: rs.subject?.name,
+        credit: rs.subject?.credit,
+        unitPrice: 300000, // hoặc lấy từ subject nếu có
+      })),
+    }));
+    res.json(result);
   } catch (err) {
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: err.message });
   }
 };
 
@@ -62,12 +86,35 @@ exports.payTuition = async (req, res) => {
 
 exports.getMyTuition = async (req, res) => {
   try {
-    const studentId = req.user.id; // Lấy ID sinh viên từ JWT
+    const studentId = req.user.studentId; // Sửa lại dòng này
+    if (!studentId)
+      return res.status(400).json({ message: "Missing studentId in token" });
+
     const tuition = await Tuition.findOne({ student: studentId })
-      .populate("registeredSubjects", "name code credit")
-      .populate("student", "name email");
+      .populate({
+        path: "student",
+        select: "name email mssv studentId code classId",
+        populate: { path: "classId", select: "name" },
+      })
+      .populate({
+        path: "registeredSubjects",
+        populate: { path: "subject", select: "code name credit" },
+      });
+
     if (!tuition) return res.status(404).json({ message: "No tuition found" });
-    res.json(tuition);
+
+    // Map lại dữ liệu cho FE dễ dùng (giống getAllTuitions)
+    const result = {
+      ...tuition.toObject(),
+      registeredSubjects: tuition.registeredSubjects.map((rs) => ({
+        code: rs.subject?.code,
+        name: rs.subject?.name,
+        credit: rs.subject?.credit,
+        unitPrice: 300000,
+      })),
+    };
+
+    res.json(result);
   } catch (err) {
     res.status(500).json({ message: "Server error" });
   }
