@@ -9,7 +9,7 @@ const teacherRoutes = require("./routes/teacherRoutes");
 const subjectRoutes = require("./routes/subjectRoutes");
 const registeredSubjectRoutes = require("./routes/registeredSubjectRoutes");
 const app = express();
-
+const paymentMockRoutes = require("./routes/paymentMock");
 app.use(cors());
 app.use(express.json());
 
@@ -22,6 +22,7 @@ app.use("/api/teachers", teacherRoutes);
 app.use("/api/subjects", subjectRoutes);
 app.use("/api/registered-subjects", registeredSubjectRoutes);
 app.use("/api/tuition", require("./routes/tuitionRoutes"));
+app.use("/api/payments", paymentMockRoutes);
 app.get("/", (req, res) => {
   res.send("Tuition Payment API Running...");
 });
