@@ -40,6 +40,7 @@ io.on("connection", (socket) => {
     console.log("❌ Client disconnected:", socket.id);
   });
 });
+app.set("io", io);
 app.use("/api/users", require("./routes/userRoutes"));
 app.use("/api/auth", require("./routes/auth")); // Đăng ký route auth
 app.use("/api/classes", require("./routes/classRoutes"));

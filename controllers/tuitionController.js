@@ -77,7 +77,26 @@ exports.payTuition = async (req, res) => {
       req.params.id,
       { status: "paid" },
       { new: true }
-    );
+    )
+      .populate({
+        path: "student",
+        select: "name email mssv studentId code classId",
+        populate: { path: "classId", select: "name" },
+      })
+      .populate({
+        path: "registeredSubjects",
+        populate: { path: "subject", select: "code name credit" },
+      });
+
+    // Gửi socket event nếu thành công
+    const io = req.app.get("io");
+    io.emit("tuition_paid", {
+      tuitionId: updated._id,
+      student: updated.student,
+      totalAmount: updated.totalAmount,
+      time: new Date(),
+    });
+
     res.json(updated);
   } catch (err) {
     res.status(500).json({ message: "Server error" });
